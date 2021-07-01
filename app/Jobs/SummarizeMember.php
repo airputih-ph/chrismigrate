@@ -40,7 +40,7 @@ class SummarizeMember implements ShouldQueue
             ->where('branch_code', $this->scan_id)
             ->where("status_migration", 0)
             ->orderBy("id")
-            ->chunk(500, function ($deposits){
+            ->chunk(2000, function ($deposits){
                 foreach($deposits as $d){
                     if($d->status == 1){
                         $summary = SummariesMember::firstOrCreate(["member_id" => $d->member_id]);
@@ -71,7 +71,7 @@ class SummarizeMember implements ShouldQueue
             ->where('branch_code', $this->scan_id)
             ->where("status_migration", 0)
             ->orderBy("id")
-            ->chunk(500, function ($withdraws){
+            ->chunk(2000, function ($withdraws){
                 foreach($withdraws as $w){
                     if($w->status == 1){
                         $summary = SummariesMember::firstOrCreate(["member_id" => $w->member_id]);
