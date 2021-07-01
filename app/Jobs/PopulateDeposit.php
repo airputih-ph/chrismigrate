@@ -42,7 +42,7 @@ class PopulateDeposit implements ShouldQueue
         ->where('depo.scan_id', $this->scan_id)
         ->join('rekening', 'depo.rekening_tujuan', '=', 'rekening.id')
         ->orderBy('depo.id')
-        ->chunk(5, function ($deposits) {
+        ->chunk(200, function ($deposits) {
             foreach($deposits as $depo){
                 $member_url = "http://172.31.39.201";
                 $member_token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJteS1wcm9qZWN0IiwiZXhwIjoxNTA5NjUwODAxLCJpYXQiOjE1MDk2NTQ0MDF9.F4iKO0R0wvHkpCcQoyrYttdGxE5FLAgDhbJOSLEHIBPsbL2WkLxXB9IGbDESn9rE7oxn89PJFRtcLn7kJwvdQkQcsPxn2RQorvDAnvAi1w3k8gpxYWo2DYJlnsi7mxXDqSUCNm1UCLRCW68ssYJxYLSg7B1xGMgDADGyYPaIx1EdN4dDbh-WeDyLLa7a8iWVBXdbmy1H3fEuiAyxiZpk2ll7DcQ6ryyMrU2XadwEr9PDqbLe1SrlaJsQbFi8RIdlQJSo_DZGOoAlA5bYTDYXb-skm7qvoaH5uMtOUb0rjijYuuxhNZvZDaBerEaxgmmlO0nQgtn12KVKjmKlisG79Q";
@@ -114,6 +114,12 @@ class PopulateDeposit implements ShouldQueue
                     Log::warning($depo->id . ' error, no status detected');
                 }
 
+                if($depo->approved_at == null){
+                    $processed = $depo->lastUpdate;
+                }else{
+                    $processed = $depo->approved_at;
+                }
+
                 $inserted = [
                     "transaction_id" => $depo->id,
                     "branch_code" => $this->scan_id,
@@ -140,14 +146,13 @@ class PopulateDeposit implements ShouldQueue
                     "warning" => $warning,
                     "created_at" => $depo->date,
                     "processed_by" => $depo->useradmin,
-                    "processed_at" => $depo->approved_at,
+                    "processed_at" => $processed,
                     "updated_at" => $depo->lastUpdate,
                     "updated_by" => "",
                     "status_migration" => 0
                 ];
 
-                DB::table('deposits_migrations')->insert($inserted);
-                return false;
+                DB::table('deposits_migrations')->insertOrIgnore($inserted);
             }
         });
     }

@@ -39,10 +39,10 @@ class PopulateWithdraw implements ShouldQueue
     public function handle()
     {
         DB::connection('v1')->table('withdraw')
-        ->select('withdraw.id as id', 'withdraw.scan_id as scan_id', 'withdraw.bank as bank', 'withdraw.name as name', 'withdraw.rekening as rekening', 'category_type', 'username', 'jumlah', 'status', 'useradmin', 'date', 'approved_at', 'depo.lastUpdate as lastUpdate', 'remark', 'warning_status')
+        ->select('withdraw.id as id', 'withdraw.scan_id as scan_id', 'withdraw.bank as bank', 'withdraw.name as name', 'withdraw.rekening as rekening', 'category_type', 'username', 'jumlah', 'status', 'useradmin', 'date', 'approved_at', 'withdraw.lastUpdate as lastUpdate', 'remark', 'warning_status')
         ->where('withdraw.scan_id', $this->scan_id)
         ->orderBy('withdraw.id')
-        ->chunk(5, function ($withdraws) {
+        ->chunk(500, function ($withdraws) {
             foreach($withdraws as $wd){
                 $member_url = "http://172.31.39.201";
                 $member_token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJteS1wcm9qZWN0IiwiZXhwIjoxNTA5NjUwODAxLCJpYXQiOjE1MDk2NTQ0MDF9.F4iKO0R0wvHkpCcQoyrYttdGxE5FLAgDhbJOSLEHIBPsbL2WkLxXB9IGbDESn9rE7oxn89PJFRtcLn7kJwvdQkQcsPxn2RQorvDAnvAi1w3k8gpxYWo2DYJlnsi7mxXDqSUCNm1UCLRCW68ssYJxYLSg7B1xGMgDADGyYPaIx1EdN4dDbh-WeDyLLa7a8iWVBXdbmy1H3fEuiAyxiZpk2ll7DcQ6ryyMrU2XadwEr9PDqbLe1SrlaJsQbFi8RIdlQJSo_DZGOoAlA5bYTDYXb-skm7qvoaH5uMtOUb0rjijYuuxhNZvZDaBerEaxgmmlO0nQgtn12KVKjmKlisG79Q";
@@ -102,6 +102,12 @@ class PopulateWithdraw implements ShouldQueue
                     Log::warning($wd->id . ' error, no status detected');
                 }
 
+                if($wd->approved_at == null){
+                    $processed = $wd->lastUpdate;
+                }else{
+                    $processed = $wd->approved_at;
+                }
+
                 $inserted = [
                     "transaction_id" => $wd->id,
                     "branch_code" => $this->scan_id,
@@ -126,14 +132,13 @@ class PopulateWithdraw implements ShouldQueue
                     "warning" => $warning,
                     "created_at" => $wd->date,
                     "processed_by" => $wd->useradmin,
-                    "processed_at" => $wd->approved_at,
+                    "processed_at" => $processed,
                     "updated_at" => $wd->lastUpdate,
                     "updated_by" => "",
                     "status_migration" => 0
                 ];
 
-                DB::table('withdraws_migrations')->insert($inserted);
-                return false;
+                DB::table('withdraws_migrations')->insertOrIgnore($inserted);
             }
         });
     }
