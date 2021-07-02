@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\InsertWithdrawToV2;
 use Illuminate\Console\Command;
 
 class InsertWithdrawToV2Command extends Command
@@ -11,14 +12,14 @@ class InsertWithdrawToV2Command extends Command
      *
      * @var string
      */
-    protected $signature = 'command:name';
+    protected $signature = 'insert:withdraw';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Inserting withdraw data to V2 {!PRODUCTION!}';
 
     /**
      * Create a new command instance.
@@ -37,6 +38,10 @@ class InsertWithdrawToV2Command extends Command
      */
     public function handle()
     {
-        return 0;
+        try{
+            InsertWithdrawToV2::dispatch();
+        } catch (\Throwable $e) {
+            return $this->error("Failed with error: {$e->getMessage()}");
+        }
     }
 }

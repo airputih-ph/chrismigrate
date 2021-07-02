@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\Jobs\InsertDepositToV2;
 
 class InsertDepositToV2Command extends Command
 {
@@ -11,14 +12,14 @@ class InsertDepositToV2Command extends Command
      *
      * @var string
      */
-    protected $signature = 'command:name';
+    protected $signature = 'insert:deposit';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Inserting deposit data to V2 {!PRODUCTION!}';
 
     /**
      * Create a new command instance.
@@ -37,6 +38,10 @@ class InsertDepositToV2Command extends Command
      */
     public function handle()
     {
-        return 0;
+        try{
+            InsertDepositToV2::dispatch();
+        } catch (\Throwable $e) {
+            return $this->error("Failed with error: {$e->getMessage()}");
+        }
     }
 }

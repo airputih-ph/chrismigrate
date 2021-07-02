@@ -32,12 +32,15 @@ class InsertDepositToV2 implements ShouldQueue
     public function handle()
     {
         DB::table('deposits_migrations')
-            ->where('branch_code', $this->scan_id)
             ->where("status_migration", 1)
             ->orderBy("id")            
-            ->chunk(4000, function ($deposits){
+            ->chunk(3000, function ($deposits){
                 foreach($deposits as $deposit){
-                    
+                    $array = (array)$deposit;
+                    unset($array["status_migration"]);
+                    unset($array["id"]);
+                    DB::connection('v2')->table('Deposits')->insertOrIgnore($array);
+                    DB::table('deposits_migrations')->where('id', $deposit->id)->update(['status_migration' => 2]);
                 }
             });
     }
