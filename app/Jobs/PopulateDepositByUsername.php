@@ -25,7 +25,7 @@ class PopulateDepositByUsername implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($scan_id, $currency, $username)
+    public function __construct($username, $scan_id, $currency)
     {
         $this->scan_id = $scan_id;
         $this->currency = $currency;
