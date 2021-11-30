@@ -354,16 +354,16 @@ Log::warning($depo->toBank);
                     Log::warning($depo->id . ' error, no status detected');
                 }
 
-		$rate = 100;
-
-		if($depo->rate != ""){
-			$rate = $depo->rate * 100%;
-		}
+		        $rate = 100;
+                    
+		        if($depo->rate != ""){
+		        	$rate = $depo->rate * 100;
+		        }
 
                 $processed = $depo->lastUpdate;
 
                 $inserted = [
-		    "transaction_id" => $depo->id,
+		            "transaction_id" => $depo->id,
                     "branch_code" => $scan_id,
                     "branch_name" => $branch_name,
                     "currency_code" => $currency,
