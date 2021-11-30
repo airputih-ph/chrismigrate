@@ -210,7 +210,8 @@ $xl = ['xlatauaxis',
 'axis',
 'axis/xl',
 'xl/axis',
-'xl-all-operator'];
+'xl-all-operator',
+'pulsaxl'];
 
 if(in_array($depo->bank, $xl)){
     $depo->bank = 'xl';
@@ -258,7 +259,8 @@ $telkomsel = ['telkomsel',
 'telkomsel71',
 'telkomsel72',
 'telkomsel73',
-'telkomsel74'];
+'telkomsel74',
+'pulsatelkomsel'];
 
 if(in_array($depo->bank, $telkomsel)){
     $depo->bank = 'telkomsel';
@@ -352,9 +354,16 @@ Log::warning($depo->toBank);
                     Log::warning($depo->id . ' error, no status detected');
                 }
 
+		$rate = 100;
+
+		if($depo->rate != ""){
+			$rate = $depo->rate * 100%;
+		}
+
                 $processed = $depo->lastUpdate;
 
                 $inserted = [
+		    "transaction_id" => $depo->id,
                     "branch_code" => $scan_id,
                     "branch_name" => $branch_name,
                     "currency_code" => $currency,
@@ -369,7 +378,7 @@ Log::warning($depo->toBank);
                     "to_payment_name" => $depo->toBank,
                     "to_account_name" => $depo->toName,
                     "to_account_number" => $depo->toNumber,
-                    "rate" => $depo->rate,
+                    "rate" => $rate,
                     "amount_submitted" => $amountSubmitted,
                     "amount_processed" => $amountProcessed,
                     "notes" => $depo->remark,
@@ -385,10 +394,8 @@ Log::warning($depo->toBank);
                     "status_migration" => 0
                 ];
 
-                dd($inserted);
-                exit();
-
                 DB::table('deposits_migrations')->insertOrIgnore($inserted);
+		exit();
             }
 	}
         });
