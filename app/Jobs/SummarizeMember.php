@@ -35,12 +35,12 @@ class SummarizeMember implements ShouldQueue
      */
     public function handle()
     {
-        DB::table('deposits_migrations')
+        $deposits = DB::table('deposits_migrations')
             ->select("id", "member_id", "amount_processed", "status", "processed_at")
             ->where('branch_code', $this->scan_id)
             ->where("status_migration", 0)
-            ->orderBy("id")
-            ->chunk(2000, function ($deposits){
+            ->orderBy("id")->get();
+//            ->chunk(2000, function ($deposits){
                 foreach($deposits as $d){
                     if($d->status == 1){
                         $summary = SummariesMember::firstOrCreate(["member_id" => $d->member_id]);
@@ -63,15 +63,15 @@ class SummarizeMember implements ShouldQueue
                         
                         DB::table('deposits_migrations')->where('id', $d->id)->update(['status_migration' => 1]);
                     }
-                }
-            });
+                
+            };
 
-        DB::table('withdraws_migrations')
+        $withdraws = DB::table('withdraws_migrations')
             ->select("id", "member_id", "amount_processed", "status", "processed_at")
             ->where('branch_code', $this->scan_id)
             ->where("status_migration", 0)
-            ->orderBy("id")
-            ->chunk(2000, function ($withdraws){
+            ->orderBy("id")->get();
+//            ->chunk(2000, function ($withdraws){
                 foreach($withdraws as $w){
                     if($w->status == 1){
                         $summary = SummariesMember::firstOrCreate(["member_id" => $w->member_id]);
@@ -94,7 +94,7 @@ class SummarizeMember implements ShouldQueue
                         
                         DB::table('withdraws_migrations')->where('id', $w->id)->update(['status_migration' => 1]);
                     }
-                }
-            });
+                
+            };
     }
 }

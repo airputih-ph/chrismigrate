@@ -41,7 +41,9 @@ class PopulateWithdraw implements ShouldQueue
         DB::connection('v1')->table('withdraw')
         ->select('withdraw.id as id', 'withdraw.scan_id as scan_id', 'withdraw.bank as bank', 'withdraw.name as name', 'withdraw.rekening as rekening', 'category_type', 'username', 'jumlah', 'status', 'useradmin', 'date', 'approved_at', 'withdraw.lastUpdate as lastUpdate', 'remark', 'warning_status')
         ->where('withdraw.scan_id', $this->scan_id)
-        ->orderBy('withdraw.id', 'DESC')
+	->where('withdraw.date', '>', '2021-06-20 00:00:00')
+	->where('withdraw.date', '<', '2022-01-19 00:00:00')
+        ->orderBy('withdraw.id', 'ASC')
         ->chunk(500, function ($withdraws) {
             foreach($withdraws as $wd){
                 $member_url = "http://172.31.39.201";
@@ -62,7 +64,8 @@ class PopulateWithdraw implements ShouldQueue
                         "currency" => $this->currency
                     ])->json();
                 }catch(Exception $e){
-                    Log::warning($e);
+                    Log::warning('[WITHDRAW] error on member : '.$username.' branch code : '.$this->scan_id);
+		    continue;
                 }
 
                 if($memberSimple["success"] == true){
@@ -89,20 +92,32 @@ if($wd->bank == "BRI"){
 $wd->bank = "bri";
 }
 
+if($wd->bank == "banksyariahindonesia"){
+$wd->bank = "bsi";
+}
+
 if($wd->bank == "Danamon"){
 $wd->bank = "danamon";
 }
 
-if($wd->bank == "ovo3" || $wd->bank == "ovo4"){
+if($wd->bank == "ovo2" || $wd->bank == "ovo3" || $wd->bank == "ovo4"){
 $wd->bank = "ovo";
+}
+
+if($wd->bank == "ocbcnisp"){
+$wd->bank = "ocbc";
 }
 
 if($wd->bank == "Mandiri" || $wd->bank == "mandiri_online" || $wd->bank == "mandiri2"){
 $wd->bank = "mandiri";
 }
 
-if($wd->bank == "cimbniaga" || $wd->bank == "cimbniaga"){
+if($wd->bank == "cimbniaga" || $wd->bank == "cimbniaga" || $wd->bank == "CIMB"){
 $wd->bank = "cimb";
+}
+
+if($wd->bank == "lain"){
+$wd->bank = "banklain";
 }
 
 if($wd->bank == "jeniusbtpn"){
@@ -111,6 +126,22 @@ $wd->bank = "jenius";
 
 if($wd->bank == "bankdanamon"){
 $wd->bank = "danamon";
+}
+
+if($wd->bank == "sakukubca"){
+$wd->bank = "sakuku";
+}
+
+if($wd->bank == "dana1" || $wd->bank == "dana2"){
+$wd->bank = "dana";
+}
+
+if($wd->bank == "go-pay"){
+$wd->bank = "gopay";
+}
+
+if($wd->bank == "xlaxiata" || $wd->bank == "xl2"){
+$wd->bank = "xl";
 }
 
 $categories = [
@@ -130,6 +161,18 @@ $categories = [
         'btn' => 'bank',
         'ocbc' => 'bank',
         'panin' => 'bank',
+	'papua' => 'bank',
+        'bankaceh' => 'bank',
+        'bsb' => 'bank',
+        'bcasyariah' => 'bank',
+	'mandirisyariah' => 'bank',
+        'jatim' => 'bank',
+        'bjb' => 'bank',
+        'sinarmas' => 'bank',
+        'scbbank' => 'bank',
+        'kasikornbank' => 'bank',
+        'bangkokbank' => 'bank',
+        'krungthaibank' => 'bank',
         'shopeepay' => 'epayment',
         'sakuku' => 'epayment',
         'dana' => 'epayment',
@@ -139,6 +182,7 @@ $categories = [
         'linkaja' => 'epayment',
         'jenius' => 'epayment',
         'doku' => 'epayment',
+	'grabpay' => 'epayment',
         'telkomsel' => 'phonecredit',
         'xl' => 'phonecredit',
         'tri' => 'phonecredit'

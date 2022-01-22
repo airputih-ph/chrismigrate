@@ -108,6 +108,15 @@ class PopulateWithdrawByUsername implements ShouldQueue
                     $wd->bank = 'telkomsel';
                 }
 
+                $ocbc = [
+                    'ocbcnisp'
+                ];
+
+                if(in_array($wd->bank, $ocbc)){
+                    $wd->bank = 'ocbc';
+                }
+
+
                 $bri = [
                     'bri2', 'BRI'
                 ];
@@ -135,6 +144,7 @@ class PopulateWithdrawByUsername implements ShouldQueue
                     'btpn' => 'bank',
                     'maybank' => 'bank',
                     'permata' => 'bank',
+		    'ocbc' => 'bank',
                     'shopeepay' => 'epayment',
                     'sakuku' => 'epayment',
                     'dana' => 'epayment',
@@ -149,7 +159,7 @@ class PopulateWithdrawByUsername implements ShouldQueue
                     'tri' => 'phonecredit'
                 ];
                 
-                $categoryTo = $categories[$wd->toBank];
+                $categoryTo = $categories[$wd->bank];
 
                 $amountSubmitted = $currency == "IDR" ? $wd->jumlah / 1000 : $wd->jumlah;
                 $amountProcessed = $currency == "IDR" ? $wd->jumlah / 1000 : $wd->jumlah;

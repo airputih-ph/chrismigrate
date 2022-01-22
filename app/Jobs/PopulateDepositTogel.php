@@ -41,7 +41,7 @@ class PopulateDepositTogel implements ShouldQueue
         ->select('depo.id as id', 'depo.webid as scan_id', 'depo.bank as bank', 'depo.name as name', 'depo.rekening as rekening', 'username', 'jumlah', 'status', 'useradmin', 'date', 'depo.lastUpdate as lastUpdate', 'remark', 'depo.rates as rate', 'rekening.bank as toBank', 'rekening.name as toName', 'rekening.rekening as toNumber')
         ->where('depo.webid', $this->scan_id)
         ->join('rekening', 'depo.rekening_tujuan', '=', 'rekening.id')
-        ->orderBy('depo.id', 'ASC')
+        ->orderBy('depo.id', 'DESC')
         ->chunk(2000, function ($deposits) {
             foreach($deposits as $depo){
 		        if(DB::table('deposits_migrations')->where('transaction_id', $depo->id)->exists()){
@@ -82,6 +82,14 @@ class PopulateDepositTogel implements ShouldQueue
                     $branch_name = $memberSimple["data"]["website"];
                     $warning = $memberSimple["data"]["warningStatus"];
                 }
+
+if($depo->bank == ""){
+$depo->bank = "banklain";
+}
+
+if($depo->toBank == ""){
+$depo->toBank = "banklain";
+}
 
 if($depo->toBank == "CIMB" || $depo->toBank == "cimbniaga"){
 $depo->toBank = "cimb";
@@ -395,7 +403,6 @@ Log::warning($depo->toBank);
                 ];
 
                 DB::table('deposits_migrations')->insertOrIgnore($inserted);
-		exit();
             }
 	}
         });

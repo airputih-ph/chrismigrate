@@ -186,7 +186,7 @@ Log::warning($wd->bank);
 
                 $inserted = [
                     "transaction_id" => $wd->id,
-                    "branch_code" => $this->scan_id,
+                    "branch_code" => $scan_id,
                     "branch_name" => $branch_name,
                     "currency_code" => $currency,
                     "member_id" => $member_id,

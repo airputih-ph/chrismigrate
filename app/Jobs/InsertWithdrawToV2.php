@@ -31,17 +31,19 @@ class InsertWithdrawToV2 implements ShouldQueue
      */
     public function handle()
     {
-        DB::table('withdraws_migrations')
+        $withdraws = DB::table('withdraws_migrations')
             ->where("status_migration", 1)
-            ->orderBy("id")            
-            ->chunk(3000, function ($withdraws){
+            ->orderBy("id")->get();
+            //->chunk(3000, function ($withdraws){
                 foreach($withdraws as $wd){
+                   if($wd->status_migration==1){
                     $array = (array)$wd;
                     unset($array["status_migration"]);
                     unset($array["id"]);
                     DB::connection('v2')->table('Withdraws')->insertOrIgnore($array);
                     DB::table('withdraws_migrations')->where('id', $wd->id)->update(['status_migration' => 2]);
+                  }
                 }
-            });
+            //});
     }
 }

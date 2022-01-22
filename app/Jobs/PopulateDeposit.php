@@ -40,12 +40,14 @@ class PopulateDeposit implements ShouldQueue
         DB::connection('v1')->table('depo')
         ->select('depo.id as id', 'depo.scan_id as scan_id', 'depo.bank as bank', 'depo.name as name', 'depo.rekening as rekening', 'category_type', 'username', 'jumlah', 'status', 'useradmin', 'date', 'approved_at', 'depo.lastUpdate as lastUpdate', 'remark', 'warning_status', 'img_url', 'depo.rate as rate', 'rekening.bank as toBank', 'rekening.name as toName', 'rekening.rekening as toNumber')
         ->where('depo.scan_id', $this->scan_id)
+	->where('depo.date', '>', '2022-01-19 00:00:00')
+	//->where('depo.date', '>', '2021-11-20 00:00:00')
         ->join('rekening', 'depo.rekening_tujuan', '=', 'rekening.id')
-        ->orderBy('depo.id', 'DESC')
-        ->chunk(2000, function ($deposits) {
+        ->orderBy('depo.id', 'ASC')
+        ->chunk(20000, function ($deposits) {
             foreach($deposits as $depo){
 		if(DB::table('deposits_migrations')->where('transaction_id', $depo->id)->exists()){
-			Log::debug('ada '.$depo->id); 
+			
 		}
 		else{
                 $member_url = "http://172.31.39.201";
@@ -66,8 +68,7 @@ class PopulateDeposit implements ShouldQueue
                         "currency" => $this->currency
                     ])->json();
                 }catch(Exception $e){
-                    Log::warning($e);
-			Log::warning($username);
+			Log::warning('[DEPOSIT] error on member : '.$username.' branch code : '.$this->scan_id);
 			continue;
                 }
 
@@ -83,11 +84,11 @@ if($depo->toBank == "CIMB" || $depo->toBank == "cimbniaga"){
 $depo->toBank = "cimb";
 }
 
-if($depo->toBank == "otherbank"){
+if($depo->toBank == "otherbank" || $depo->bank == "lain"){
 $depo->toBank = "banklain";
 }
 
-if($depo->bank == "otherbank"){
+if($depo->bank == "otherbank" || $depo->bank == "lain"){
 $depo->bank = "banklain";
 }
 
@@ -107,6 +108,20 @@ if($depo->bank == "BRI"){
 $depo->bank = "bri";
 }
 
+$bsi = [
+'banksyariahindonesia'
+];
+
+
+if(in_array($depo->bank, $bsi)){
+    $depo->bank = 'bsi';
+}
+
+if(in_array($depo->toBank, $bsi)){
+    $depo->toBank = 'bsi';
+}
+
+
 if($depo->bank == "Danamon" || $depo->bank == "bankdanamon"){
 $depo->bank = "danamon";
 }
@@ -119,7 +134,7 @@ if($depo->bank == "mandiri_online" || $depo->bank == "mandiri2"){
 $depo->bank = "mandiri";
 }
 
-if($depo->toBank == "BCA" || $depo->toBank == "bca2" || $depo->toBank == "bca3" || $depo->toBank == "qr-bankbca"){
+if($depo->toBank == "BCA" || $depo->toBank == "bca2" || $depo->toBank == "bca3" || $depo->toBank == "qr-bankbca" || $depo->toBank == "bcanewmember"){
 $depo->toBank = "bca";
 }
 
@@ -133,6 +148,26 @@ $depo->toBank = "bri";
 
 if($depo->toBank == "Danamon" || $depo->toBank == "bankdanamon"){
 $depo->toBank = "danamon";
+}
+
+if($depo->bank == "acehsyariah"){
+$depo->bank = "bankaceh";
+}
+
+if($depo->bank == "bankocbcnisp" || $depo->bank == "ocbcnisp"){
+$depo->bank = "ocbc";
+}
+
+if($depo->bank == "banksinarmas"){
+$depo->bank = "sinarmas";
+}
+
+if($depo->bank == "bankbpd"){
+$depo->bank = "bpd";
+}
+
+if($depo->bank == "bankbtn"){
+$depo->bank = "btn";
 }
 
 if($depo->toBank == "dana1" || $depo->toBank == "dana2" || $depo->toBank == "dana3" || $depo->toBank == "dana4" || $depo->toBank == "dana5" || $depo->toBank == "dana6" || $depo->toBank == "dana7" || $depo->toBank == "dana8" || $depo->toBank == "dana9" || $depo->toBank == "dana10" || $depo->toBank == "dana11" || $depo->toBank == "dana12" || $depo->toBank == "dana13" || $depo->toBank == "dana14" || $depo->toBank == "dana15" || $depo->toBank == "dana16" || $depo->toBank == "dana17" || $depo->toBank == "dana18" || $depo->toBank == "dana19" || $depo->toBank == "dana20" || $depo->toBank == "dana21" || $depo->toBank == "dana22" || $depo->toBank == "dana23" || $depo->toBank == "qr-dana"){
@@ -151,11 +186,19 @@ if($depo->toBank == "Mandiri" || $depo->toBank == "mandiri_online" || $depo->toB
 $depo->toBank = "mandiri";
 }
 
-if($depo->toBank == "qr-dana"){
+if($depo->bank == "ewallet" || $depo->bank == "dana1" || $depo->bank == "dana2"){
+$depo->bank = "dana";
+}
+
+if($depo->toBank == "qr-dana" || $depo->toBank == "dana1" || $depo->toBank == "dana2" || $depo->toBank == "dana3" || $depo->toBank == "dana4" || $depo->toBank == "dana5" || $depo->toBank == "dana6"){
 $depo->toBank = "dana";
 }
 
-if($depo->toBank == "qr-gopay"){
+if($depo->bank == "go-pay"){
+$depo->bank = "gopay";
+}
+
+if($depo->toBank == "qr-gopay" || $depo->toBank == "go-pay" || $depo->toBank == "gopay2"){
 $depo->toBank = "gopay";
 }
 
@@ -163,12 +206,20 @@ if($depo->toBank == "qr-linkaja"){
 $depo->toBank = "linkaja";
 }
 
-if($depo->toBank == "qr-sakuku"){
+if($depo->bank == "sakukubca"){
+$depo->bank = "sakuku";
+}
+
+if($depo->toBank == "qr-sakuku" || $depo->toBank == "sakukubca"){
 $depo->toBank = "sakuku";
 }
 
 if($depo->toBank == "qr-shopeepay"){
 $depo->toBank = "shopeepay";
+}
+
+if($depo->toBank == "telkomqris"){
+$depo->toBank = "qris";
 }
 
 if($depo->toBank == "jeniusbtpn"){
@@ -183,7 +234,23 @@ if($depo->toBank == "bankpapua"){
 $depo->toBank = "papua";
 }
 
-$xl = ['xlatauaxis', 
+$tri = ['three'];
+
+if(in_array($depo->bank, $tri)){
+    $depo->bank = 'tri';
+}
+
+if(in_array($depo->toBank, $tri)){
+    $depo->toBank = 'tri';
+}
+
+$xl = ['xlatauaxis',
+'pulsaxl',
+'xl_tanpa_potongan',
+'xl1',
+'xl2',
+'xlaxis',
+'xlaxiata',
 'xlatauaxis11', 
 'xlatauaxis12', 
 'xlatauaxis13', 
@@ -217,6 +284,10 @@ if(in_array($depo->toBank, $xl)){
 }
 
 $telkomsel = ['telkomsel',
+'simpati',
+'telkom',
+'telkomsel_tanpa_potongan',
+'pulsatelkomsel',
 'telkomsel1',
 'telkomsel2',
 'telkomsel3',
@@ -282,6 +353,20 @@ $categories = [
 	'ocbc' => 'bank',
 	'panin' => 'bank',
 	'papua' => 'bank',
+	'bankaceh' => 'bank',
+	'bsb' => 'bank',
+	'bcasyariah' => 'bank',
+	'mandirisyariah' => 'bank',
+	'brisyariah' => 'bank',
+	'bnisyariah' => 'bank',
+	'jatim' => 'bank',
+	'bjb' => 'bank',
+	'sinarmas' => 'bank',
+	'bpd' => 'bank',
+	'scbbank' => 'bank',
+	'kasikornbank' => 'bank',
+	'bangkokbank' => 'bank',
+	'krungthaibank' => 'bank',
 	'shopeepay' => 'epayment',
 	'sakuku' => 'epayment',
         'dana' => 'epayment',
@@ -291,6 +376,7 @@ $categories = [
 	'linkaja' => 'epayment',
 	'jenius' => 'epayment',
 	'doku' => 'epayment',
+	'grabpay' => 'epayment',
         'telkomsel' => 'phonecredit',
         'xl' => 'phonecredit',
 	'tri' => 'phonecredit'

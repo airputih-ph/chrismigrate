@@ -39,6 +39,7 @@ class PopulateDepositByUsername implements ShouldQueue
      */
     public function handle()
     {
+	Log::debug(['scan_id' => $this->scan_id, 'username' => $this->username]);
         DB::connection('v1')->table('depo')
         ->select('depo.id as id', 'depo.scan_id as scan_id', 'depo.bank as bank', 'depo.name as name', 'depo.rekening as rekening', 'category_type', 'username', 'jumlah', 'status', 'useradmin', 'date', 'approved_at', 'depo.lastUpdate as lastUpdate', 'remark', 'warning_status', 'img_url', 'depo.rate as rate', 'rekening.bank as toBank', 'rekening.name as toName', 'rekening.rekening as toNumber')
         ->where('depo.scan_id', $this->scan_id)
@@ -104,6 +105,18 @@ class PopulateDepositByUsername implements ShouldQueue
                     $depo->toBank = 'ovo';
                 }
 
+		$ocbc = [
+		    'ocbcnisp'
+		];
+
+		if(in_array($depo->bank, $ocbc)){
+		    $depo->bank = 'ocbc';
+		}
+
+                if(in_array($depo->toBank, $ocbc)){
+                    $depo->toBank = 'ocbc';
+                }
+
                 $mandiri = [
                     'mandiri_online', 'mandiri2', 'MANDIRI'
                 ];
@@ -163,6 +176,7 @@ class PopulateDepositByUsername implements ShouldQueue
                     'btpn' => 'bank',
                     'maybank' => 'bank',
                     'permata' => 'bank',
+		    'ocbc' => 'bank',
                     'shopeepay' => 'epayment',
                     'sakuku' => 'epayment',
                     'dana' => 'epayment',
